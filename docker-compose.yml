@@ -1,0 +1,31 @@
+services:
+  web:
+    build: .
+    container_name: iptv_web
+    ports:
+      - "8080:80"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=iptv_panel
+      - DB_USER=root
+      - DB_PASS=secret123
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mariadb:10.11
+    container_name: iptv_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret123
+      - MYSQL_DATABASE=iptv_panel
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./database.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - iptv_db_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  iptv_db_data:
