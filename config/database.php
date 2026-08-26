@@ -70,15 +70,24 @@ function ensureTablesExist($pdo) {
                 INDEX `idx_expires` (`expires_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
-            $sqlInsertAdmin = "INSERT INTO `admins` (`username`, `password_hash`, `email`)
-                VALUES ('admin', '$2y$10$e/WLEDvLrgSjOTyHkMo48OWmeZxQkaaMaD1iDuqkXaXeVkqISDuFW', 'admin@seuservidor.com')
-                ON DUPLICATE KEY UPDATE `id`=`id`;";
-
             $pdo->exec($sqlAdmins);
             $pdo->exec($sqlDevices);
-            $pdo->exec($sqlInsertAdmin);
+        }
+
+        // Garante que o usuário admin existe e tem a senha admin123 correta
+        $stmt = $pdo->prepare("SELECT * FROM admins WHERE username = 'admin'");
+        $stmt->execute();
+        $admin = $stmt->fetch();
+
+        $hash = password_hash('admin123', PASSWORD_BCRYPT);
+        if (!$admin) {
+            $stmtInsert = $pdo->prepare("INSERT INTO admins (username, password_hash, email) VALUES ('admin', :hash, 'admin@seuservidor.com')");
+            $stmtInsert->execute([':hash' => $hash]);
+        } else if (!password_verify('admin123', $admin['password_hash'])) {
+            $stmtUpdate = $pdo->prepare("UPDATE admins SET password_hash = :hash WHERE username = 'admin'");
+            $stmtUpdate->execute([':hash' => $hash]);
         }
     } catch (Exception $ex) {
-        // Ignora erros se já existirem
+        // Ignora se der erro pontual
     }
 }
