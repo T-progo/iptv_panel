@@ -43,39 +43,40 @@ function ensureTablesExist($pdo) {
         $check = $pdo->query("SHOW TABLES LIKE 'admins'")->rowCount();
         if ($check === 0) {
             // Tabela admins não existe -> cria tabelas padrão
-            $sql = "
-                CREATE TABLE IF NOT EXISTS `admins` (
-                    `id` INT AUTO_INCREMENT PRIMARY KEY,
-                    `username` VARCHAR(50) NOT NULL UNIQUE,
-                    `password_hash` VARCHAR(255) NOT NULL,
-                    `email` VARCHAR(100) NULL,
-                    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            $sqlAdmins = "CREATE TABLE IF NOT EXISTS `admins` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `username` VARCHAR(50) NOT NULL UNIQUE,
+                `password_hash` VARCHAR(255) NOT NULL,
+                `email` VARCHAR(100) NULL,
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
-                CREATE TABLE IF NOT EXISTS `devices` (
-                    `id` INT AUTO_INCREMENT PRIMARY KEY,
-                    `mac_address` VARCHAR(32) NOT NULL UNIQUE,
-                    `device_key` VARCHAR(16) NOT NULL,
-                    `customer_name` VARCHAR(100) NULL DEFAULT 'Cliente Novo',
-                    `customer_phone` VARCHAR(30) NULL,
-                    `playlist_url` TEXT NULL,
-                    `playlist_type` ENUM('m3u', 'xtream') DEFAULT 'm3u',
-                    `status` ENUM('pending', 'active', 'inactive', 'expired') DEFAULT 'pending',
-                    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    `expires_at` DATETIME NULL,
-                    `last_connected_at` DATETIME NULL,
-                    `app_version` VARCHAR(20) NULL,
-                    `notes` TEXT NULL,
-                    INDEX `idx_mac` (`mac_address`),
-                    INDEX `idx_status` (`status`),
-                    INDEX `idx_expires` (`expires_at`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            $sqlDevices = "CREATE TABLE IF NOT EXISTS `devices` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `mac_address` VARCHAR(32) NOT NULL UNIQUE,
+                `device_key` VARCHAR(16) NOT NULL,
+                `customer_name` VARCHAR(100) NULL DEFAULT 'Cliente Novo',
+                `customer_phone` VARCHAR(30) NULL,
+                `playlist_url` TEXT NULL,
+                `playlist_type` ENUM('m3u', 'xtream') DEFAULT 'm3u',
+                `status` ENUM('pending', 'active', 'inactive', 'expired') DEFAULT 'pending',
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                `expires_at` DATETIME NULL,
+                `last_connected_at` DATETIME NULL,
+                `app_version` VARCHAR(20) NULL,
+                `notes` TEXT NULL,
+                INDEX `idx_mac` (`mac_address`),
+                INDEX `idx_status` (`status`),
+                INDEX `idx_expires` (`expires_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
-                INSERT INTO `admins` (`username`, `password_hash`, `email`)
+            $sqlInsertAdmin = "INSERT INTO `admins` (`username`, `password_hash`, `email`)
                 VALUES ('admin', '$2y$10$e/WLEDvLrgSjOTyHkMo48OWmeZxQkaaMaD1iDuqkXaXeVkqISDuFW', 'admin@seuservidor.com')
-                ON DUPLICATE KEY UPDATE `id`=`id`;
-            ";
-            $pdo->exec($sql);
+                ON DUPLICATE KEY UPDATE `id`=`id`;";
+
+            $pdo->exec($sqlAdmins);
+            $pdo->exec($sqlDevices);
+            $pdo->exec($sqlInsertAdmin);
         }
     } catch (Exception $ex) {
         // Ignora erros se já existirem
